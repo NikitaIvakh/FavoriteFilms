@@ -80,57 +80,75 @@ document.addEventListener('DOMContentLoaded', function () {
 		poster = document.querySelector('.promo__bg'),
 		genre = poster.querySelector('.promo__genre'),
 		movieList = document.querySelector('.promo__interactive-list'),
-		submitFilm = document.querySelector('.add button'),
-		inputFilm = document.querySelector('.add input'),
-		checkbox = document.querySelector('[type="checkbox"]')
+		submitFilm = document.querySelector('form.add'),
+		inputFilm = submitFilm.querySelector('.adding__input'),
+		checkbox = submitFilm.querySelector('[type="checkbox"]')
 
-	ads.forEach(item => {
-		item.remove()
-	})
-
-	genre.textContent = 'драма'
-	poster.style.backgroundImage = "url('img/bg.jpg')"
-
-	outputMovies()
-	addMovies()
-
-	function outputMovies() {
-		movieList.innerHTML = ''
-		movieDB.movies.forEach((item, i, arr) => {
-			arr[i] = item.toLowerCase()
+	function removeAdds(arr) {
+		arr.forEach(item => {
+			item.remove()
 		})
-		movieDB.movies.sort()
-		movieDB.movies.forEach((film, i) => {
-			const filmLong = film.length > 21 ? `${film.substring(0, 21)}...` : film
-			movieList.innerHTML += `
-        <li class="promo__interactive-item">${i + 1}. ${filmLong}
+	}
+
+	function makeChanges(value1, value2) {
+		value1.textContent = 'драма'
+		value2.style.backgroundImage = "url('img/bg.jpg')"
+	}
+
+	function outputMovies(films, parent) {
+		parent.innerHTML = ''
+		sortArray(films)
+		films.forEach((film, i) => {
+			parent.innerHTML += `
+        <li class="promo__interactive-item">${i + 1}. ${film}
             <div class="delete"></div>
-        </li>
-    `
+        </li> 
+			`
 		})
 
-		const deleteButtons = document.querySelectorAll('.delete')
-		deleteButtons.forEach((button, index) => {
+		document.querySelectorAll('.delete').forEach((button, index) => {
 			button.addEventListener('click', function (event) {
 				event.preventDefault()
-				movieDB.movies.splice(index, 1)
-				outputMovies()
+				button.parentElement.remove()
+				films.splice(index, 1)
+				outputMovies(films, parent)
 			})
 		})
 	}
 
-	function addMovies() {
-		submitFilm.addEventListener('click', function (event) {
+	function addMovies(films, parent) {
+		submitFilm.addEventListener('submit', function (event) {
 			event.preventDefault()
-			const film = inputFilm.value.trim()
-			movieDB.movies.push(film)
+			let film = inputFilm.value.trim()
 			const favorite = checkbox.checked
 
-			if (favorite) {
-				console.log('Добавляем любимый фильм')
+			if (film) {
+				if (film.length > 21) {
+					film = `${film.substring(0, 22)}...`
+				}
+
+				if (favorite) {
+					console.log('Добавляем любимый фильм')
+				}
+
+				films.push(film)
+				outputMovies(films, parent)
 			}
 
-			outputMovies()
+			event.target.reset()
 		})
 	}
+
+	function sortArray(films) {
+		films.forEach((item, i, arr) => {
+			arr[i] = item.toLowerCase()
+		})
+
+		films.sort()
+	}
+
+	removeAdds(ads)
+	makeChanges(genre, poster)
+	addMovies(movieDB.movies, movieList)
+	outputMovies(movieDB.movies, movieList)
 })
